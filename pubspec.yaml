@@ -1,6 +1,6 @@
 name: flutter_quickjs
 description: A new flutter plugin project.
-version: 1.0.0+1
+version: 1.0.0
 author: ZhangPingFan
 homepage: https://github.com/ZhangPingFan/flutter_quickjs
 
@@ -11,6 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  ffi: ^0.1.3
 
 dev_dependencies:
   flutter_test:
