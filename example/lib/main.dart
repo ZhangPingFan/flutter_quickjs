@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_quickjs/flutter_quickjs.dart';
 
 void main() {
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.dumpErrorToConsole(details);
-  };
   runApp(MyApp());
 }
 
@@ -17,24 +13,31 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  TextEditingController _controller = TextEditingController(
+      text: 'function func(a, b){\n   return Math.max(30, a + b * 3);\n}\n\nfunc(2,5)');
+  String result = '';
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    testFlutterQuickjs();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
+  runJs() {
+    var qjs = new FlutterQuickjs();
+    var res;
     try {
-      platformVersion = await FlutterQuickjs.platformVersion;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+      res = qjs.eval(_controller.text);
+    } catch (e) {
+      res = e.message;
     }
+    setState(() {
+      result = res.toString();
+    });
+    qjs.close();
+  }
 
+  Future<void> testFlutterQuickjs() async {
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
@@ -86,15 +89,11 @@ class _MyAppState extends State<MyApp> {
 
     try {
       ret = qjs.eval("throw new Error('jserror');", "test.js");
-    } catch(e) {print(e);}
-
-    var res = qjs.eval('"hello quickjs"');
+    } catch (e) {
+      print(e);
+    }
 
     qjs.close();
-
-    setState(() {
-      _platformVersion = res.toString();
-    });
   }
 
   @override
@@ -104,9 +103,30 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('flutter_quickjs'),
         ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+        body: Container(
+            padding: EdgeInsets.all(8.0),
+            child: Column(
+            children: <Widget>[
+              TextField(
+                autofocus: true,
+                maxLines: 15,
+                controller: _controller,
+                decoration: InputDecoration(
+                    hintText: "write your js"),
+              ),
+              SizedBox(height: 25),
+              Text(result, textAlign: TextAlign.left, style: TextStyle(fontSize: 20))
+            ],
+        )),
+        floatingActionButton: FloatingActionButton(
+          onPressed: runJs,
+          tooltip: 'Run',
+          child: Icon(Icons.play_arrow_rounded, size: 40),
         ),
+      ),
+      theme: ThemeData(
+        primarySwatch: Colors.teal,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
     );
   }
