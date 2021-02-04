@@ -1,5 +1,5 @@
 name: flutter_quickjs
-description: A new flutter plugin project.
+description: Flutter bindings for quickjs with dart:ffi.
 version: 1.0.0
 author: ZhangPingFan
 homepage: https://github.com/ZhangPingFan/flutter_quickjs

@@ -7,3 +7,4 @@
 build/
 .idea/
 .obj/
+.vscode/settings.json
