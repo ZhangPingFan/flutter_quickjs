@@ -216,6 +216,12 @@ extern "C"
     return JS_DefinePropertyValue(ctx, *this_obj, prop, *val, flags);
   }
 
+  DART_EXPORT int jsDefinePropertyValueStr(JSContext *ctx, JSValueConst *this_obj,
+                                          const char *prop, JSValue *val, int flags)
+  {
+    return JS_DefinePropertyValueStr(ctx, *this_obj, prop, *val, flags);
+  }
+
   DART_EXPORT int jsDefinePropertyValueUint32(JSContext *ctx, JSValueConst *this_obj,
                                           uint32_t idx, JSValue *val, int32_t flags)
   {
@@ -313,7 +319,8 @@ extern "C"
   {
     JSValueConst func_data[1];
     func_data[0] = JS_NewInt32(ctx, callbackId);
-    return new JSValue(JS_NewCFunctionData(ctx, dart_callback, 0, 0, 1, func_data));
+    JSValue cfunc = JS_NewCFunctionData(ctx, dart_callback, 0, 0, 1, func_data);
+    return new JSValue(cfunc);
   }
   
   DART_EXPORT int32_t evalScript(char *str)

@@ -20,6 +20,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    runJs();
     testFlutterQuickjs();
   }
 
@@ -38,28 +39,30 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> testFlutterQuickjs() async {
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
     if (!mounted) return;
 
     var qjs = new FlutterQuickjs();
     var ret;
-    ret = qjs.eval('3 * 21');
-    print(ret);
-    ret = qjs.eval('Math.PI');
-    print(ret);
-    ret = qjs.eval('"hello"');
-    print(ret);
-    ret = qjs.eval('1 == 2');
-    print(ret);
+    // number
+    print('=== number test ===');
+    print(qjs.eval('3 * 21'));
+    print(qjs.eval('Math.PI'));
+    // boolean
+    print('=== boolean test ===');
+    print(qjs.eval('1 == 2'));
+    // string
+    print('=== string test ===');
+    print(qjs.eval('"hello"'));
+    // object
+    print('=== object test ===');
     ret = qjs.eval("var obj = {a: 1, b: 'c', 'd': { e : { f : 222} }};obj");
     print(ret);
     print(ret['d']['e']['f']);
-    ret = qjs.eval("JSON.stringify(obj)");
-    print(ret);
-    ret = qjs.eval("globalThis.obj.b");
-    print(ret);
+    print(qjs.eval("JSON.stringify(obj)"));
+    print(qjs.eval("globalThis.obj.b"));
+    print(qjs.eval("globalThis?.notfound?.haha"));
+    // function
+    print('=== function test ===');
     ret = qjs.eval("function func(a, b){return a + b;}func");
     print(ret);
     var x = ret.call('a', 'b');
@@ -67,17 +70,25 @@ class _MyAppState extends State<MyApp> {
     print(ret('a', 1, 'b', 1));
     var retRet = ret('b', 3);
     print(retRet);
+    // array
+    print('=== array test ===');
     ret = qjs.eval("var arr = [1, 'a', 5, {c: 'd'}];arr");
     print(ret);
     print(ret[2]);
     print(ret[0]);
     print(ret[3]['c']);
-    print(qjs.global());
+    // error
+    print('=== error test ===');
+    try {
+      ret = qjs.eval("throw new Error('jserror');", "test.js");
+    } catch (e) {
+      print(e.message);
+    }
 
-    print(qjs.getValue("globalThis->obj->b"));
-    print(qjs.getValue("globalThis->notfound->haha"));
-    qjs.setValue("globalThis.testObj.a.b", {'a': 1});
-    print(qjs.getValue("globalThis.testObj.a.b"));
+    // setValue & dart function call
+    print('=== setValue test ===');
+    qjs.setValue("globalThis.testObj.a.b", {'abc': 1});
+    print(qjs.eval("globalThis?.testObj?.a?.b"));
     qjs.setValue("globalThis.console.log", (msg1, msg2, msg3) {
       print(msg1);
       print(msg2);
@@ -86,12 +97,14 @@ class _MyAppState extends State<MyApp> {
       return [2, 4];
     });
     print(qjs.eval('console.log("logs from js", 3);'));
-
-    try {
-      ret = qjs.eval("throw new Error('jserror');", "test.js");
-    } catch (e) {
-      print(e);
-    }
+    var consolelog = qjs.eval('console.log');
+    print(consolelog('call console.log from dart', 2));
+    qjs.setValue("globalThis.globalArray", ['aa', 33, (msg){ print(msg); }]);
+    var global = qjs.global();
+    print(global);
+    print(global['func'](123, 32));
+    global['console']['log']('call console.log from dart', 3);
+    global['globalArray'][2]('test func in array');
 
     qjs.close();
   }

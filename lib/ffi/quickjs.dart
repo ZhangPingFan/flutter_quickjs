@@ -89,6 +89,9 @@ class Quickjs {
   static final int Function(Pointer, Pointer, Pointer<Utf8>, Pointer) jsSetPropertyStr = ffiqjsLib
     .lookup<NativeFunction<Int32 Function(Pointer, Pointer, Pointer<Utf8>, Pointer)>>("jsSetPropertyStr")
     .asFunction();
+  static final int Function(Pointer, Pointer, Pointer<Utf8>, Pointer, int) jsDefinePropertyValueStr = ffiqjsLib
+    .lookup<NativeFunction<Int32 Function(Pointer, Pointer, Pointer<Utf8>, Pointer, Int32)>>("jsDefinePropertyValueStr")
+    .asFunction();
   static final int Function(Pointer, Pointer, int, Pointer, int) jsDefinePropertyValueUint32 = ffiqjsLib
     .lookup<NativeFunction<Int32 Function(Pointer, Pointer, Uint32, Pointer, Int32)>>("jsDefinePropertyValueUint32")
     .asFunction();

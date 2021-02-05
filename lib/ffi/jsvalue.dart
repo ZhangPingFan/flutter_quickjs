@@ -63,7 +63,14 @@ class JSArray extends JSObject {
 }
 
 class JSFunction extends JSObject {
-  JSFunction(Pointer ctx, Pointer val, [bool dup = true]) : super(ctx, val, dup);
+  static Map<Pointer, List<Pointer>> _jsFunctionCache = Map();
+
+  JSFunction(Pointer ctx, Pointer val, [bool dup = true]) : super(ctx, val, dup) {
+    // keep all references to function alive util runtime closed
+    List jfuncList = _jsFunctionCache[ctx] ?? List<Pointer>();
+    jfuncList.add(val);
+    _jsFunctionCache[ctx] = jfuncList;
+  }
 
   static JSValue callFunction(ctx, jsfunc, arguments) {
     int argc = arguments.length;
@@ -91,8 +98,20 @@ class JSFunction extends JSObject {
     }
   }
 
-  JSValue apply([List<JSValue> params]) {
+  JSValue apply(List<dynamic> params) {
     return callFunction(this.ctx, this.val, params);
+  }
+
+  static void clearCache([Pointer ctx]) {
+    if (ctx != null) {
+      var length = _jsFunctionCache[ctx]?.length;
+      length ??= 0;
+      for (int i = 0; i < length; i++) {
+        Quickjs.jsFreeValue(ctx, _jsFunctionCache[ctx][i]);
+      }
+      _jsFunctionCache[ctx]?.clear();
+      _jsFunctionCache[ctx] = null;
+    }
   }
 }
 
@@ -118,7 +137,13 @@ class ValueConverter {
     } else if (tag == JSTag.OBJECT) {
       if (Quickjs.jsIsFunction(ctx, val) != 0) {
         retValue = HostFunction((arguments) {
-          return toDartValue(JSFunction.callFunction(ctx, val, arguments));
+          var resJval = (jsval as JSFunction).apply(arguments);
+          var res = toDartValue(resJval);
+          resJval.release();
+          if (res is Exception) {
+            throw res;
+          }
+          return res;
         });
       } else if (Quickjs.jsIsArray(ctx, val) != 0) {
         int length = Quickjs.jsToInt32(ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8("length")));
@@ -126,7 +151,9 @@ class ValueConverter {
         for (int i = 0; i < length; i++) {
           JSValue jval = toDartJSValue(ctx, Quickjs.jsGetPropertyUint32(ctx, val, i), false);
           list[i] = toDartValue(jval);
-          jval.release();
+          if (list[i] is! HostFunction) {
+            jval.release();
+          }
         }
         return list;
       } else {
@@ -142,7 +169,9 @@ class ValueConverter {
             map[toDartValueFromJs(ctx, jsAtomValue)] =
                 toDartValueFromJs(ctx, jsProp);
             Quickjs.jsFreeValue(ctx, jsAtomValue);
-            Quickjs.jsFreeValue(ctx, jsProp);
+            if (Quickjs.jsIsFunction(ctx, jsProp) == 0) {
+              Quickjs.jsFreeValue(ctx, jsProp);
+            }
             Quickjs.jsFreeAtom(ctx, jsAtom);
           }
         }
@@ -288,5 +317,12 @@ class HostFunctionProxy {
       }
     } catch(e) {print(e);}
     return jsVal;
+  }
+
+  static void clearCache([Pointer ctx]) {
+    if (ctx != null) {
+      _hostFunctionCache[ctx]?.clear();
+      _hostFunctionCache[ctx] = null;
+    }
   }
 }
