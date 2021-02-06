@@ -14,7 +14,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   TextEditingController _controller = TextEditingController(
-      text: 'function func(a, b){\n   return Math.max(30, a + b * 3);\n}\n\nfunc(2,5)');
+      text: 'const jsonData={ \n "0":0,\n "1":1,\n "2":2,\n "length":3 }\n\nconst func = (a, b) => {\n   let arr=Array.from(jsonData) \n   return Math.max(30, a + b * 3 * arr[2]);\n}\n\nfunc(...[2,5])');
   String result = '';
 
   @override
@@ -49,6 +49,7 @@ class _MyAppState extends State<MyApp> {
     print(qjs.eval('Math.PI'));
     // boolean
     print('=== boolean test ===');
+    print(qjs.eval('1 == 1'));
     print(qjs.eval('1 == 2'));
     // string
     print('=== string test ===');

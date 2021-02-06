@@ -10,18 +10,20 @@ class FlutterQuickjs {
   Pointer _ctx;
   Pointer _global;
 
+  /// Create a JsRuntime in QuickJS.
   FlutterQuickjs() {
     _rt = Quickjs.jsNewRuntime();
     _ctx = Quickjs.jsNewContext(_rt);
     _global = Quickjs.jsGetGlobalObject(_ctx);
   }
 
+  /// Return the global object.
   dynamic global() {
     return ValueConverter.toDartValueFromJs(_ctx, _global);
   }
 
+  /// Set value by the key.
   void setValue(String key, dynamic value) {
-    // key = key.replaceAll(new RegExp(r'[\?*\.]'), '?.');
     var sourceStr = 'FlutterQuickjs.setValue';
     var source = Utf8.toUtf8(sourceStr);
     key = key.replaceAll(new RegExp(r'->'), '.');
@@ -45,6 +47,7 @@ class FlutterQuickjs {
     Quickjs.jsFreeValue(_ctx, parentPtr);
   }
 
+  /// Evaluate the given JavaScript string and return the result.
   dynamic eval(String script, [String source, bool free = false]) {
     Pointer<Utf8> input = Utf8.toUtf8(script);
     Pointer<Utf8> filename = Utf8.toUtf8(source ?? '<anonymous>');
@@ -60,6 +63,7 @@ class FlutterQuickjs {
     return result;
   }
 
+  /// Release the JsRuntime.
   close() {
     // todo: use finalizer instead (https://github.com/dart-lang/sdk/issues/35770)
     JSFunction.clearCache(_ctx);
