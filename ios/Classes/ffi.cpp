@@ -43,14 +43,21 @@ extern "C"
     return new JSValue(JS_GetGlobalObject(ctx));
   }
 
-  DART_EXPORT JSValue *jsEval(JSContext *ctx, const char *input, size_t input_len, const char *filename, int32_t eval_flags)
+  DART_EXPORT JSValue *jsEval(JSContext *ctx, const char *input, int64_t input_len, const char *filename, int32_t eval_flags)
   {
     return new JSValue(JS_Eval(ctx, input, input_len, filename, eval_flags));
   }
 
   DART_EXPORT int32_t jsValueGetTag(JSValue *val)
   {
-    return JS_VALUE_GET_TAG(*val);
+    int32_t tag = JS_VALUE_GET_TAG(*val);
+    #if defined(JS_NAN_BOXING)
+     /* any larger tag is FLOAT64 if JS_NAN_BOXING */
+     if (tag > JS_TAG_FLOAT64 || tag < JS_TAG_FIRST) {
+       tag = JS_TAG_FLOAT64;
+     }
+    #endif
+    return tag;
   }
 
   DART_EXPORT void *jsValueGetPtr(JSValue *val)
@@ -88,7 +95,7 @@ extern "C"
     return new JSValue(JS_NewString(ctx, str));
   }
 
-  DART_EXPORT JSValue *jsNewArrayBufferCopy(JSContext *ctx, const uint8_t *buf, size_t len)
+  DART_EXPORT JSValue *jsNewArrayBufferCopy(JSContext *ctx, const uint8_t *buf, int64_t len)
   {
     return new JSValue(JS_NewArrayBufferCopy(ctx, buf, len));
   }
