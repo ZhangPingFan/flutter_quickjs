@@ -20,9 +20,10 @@ class JSValue {
   }
 
   dynamic valueOf() {
-    return this.toDartValue();
+    return toDartValue();
   }
 
+  @override
   String toString() {
     if (Quickjs.jsValueGetTag(_val) < JSTag.INT) {
       return Utf8.fromUtf8(Quickjs.jsToCString(_ctx, _val));
@@ -41,7 +42,7 @@ class JSObject extends JSValue {
   JSObject(Pointer ctx, Pointer val, [bool dup = true]) : super(ctx, val, dup);
 
   JSValue operator [](dynamic propName) {
-    return this.getProperty(propName);
+    return getProperty(propName);
   }
 
   JSValue getProperty(dynamic propName) {
@@ -58,55 +59,55 @@ class JSObject extends JSValue {
 
 class JSArray extends JSObject {
   JSArray(Pointer ctx, Pointer val, [bool dup = true]) : super(ctx, val, dup);
-  int get length => Quickjs.jsToInt64(ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8("length")));
+  int get length => Quickjs.jsToInt64(ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8('length')));
 
 }
 
 class JSFunction extends JSObject {
-  static Map<Pointer, List<Pointer>> _jsFunctionCache = Map();
+  static final Map<Pointer, List<Pointer>> _jsFunctionCache = {};
 
   JSFunction(Pointer ctx, Pointer val, [bool dup = true]) : super(ctx, val, dup) {
     // keep all references to function alive util runtime closed
-    List<Pointer> jfuncList = _jsFunctionCache[ctx] ?? List<Pointer>();
+    var jfuncList = _jsFunctionCache[ctx] ?? <Pointer>[];
     jfuncList.add(val);
     _jsFunctionCache[ctx] = jfuncList;
   }
 
   static JSValue callFunction(ctx, jsfunc, arguments) {
     int argc = arguments.length;
-    int sizeOfJSValue = Quickjs.sizeOfJSValue();
-    Pointer<Pointer> argv = allocate(
+    var sizeOfJSValue = Quickjs.sizeOfJSValue();
+    var argv = allocate<Pointer<Pointer>>(
       count: argc > 0 ? sizeOfJSValue * argc : 1,
     );
-    for (int i = 0; i < argc; i++) {
+    for (var i = 0; i < argc; i++) {
       Quickjs.setValueAtIndex(argv, i, ValueConverter.toQuickJSValue(ctx, arguments[i]));
     }
-    Pointer global = Quickjs.jsGetGlobalObject(ctx);
-    Pointer retVal = Quickjs.jsCall(ctx, jsfunc, global, argc, argv);
+    var global = Quickjs.jsGetGlobalObject(ctx);
+    var retVal = Quickjs.jsCall(ctx, jsfunc, global, argc, argv);
     Quickjs.jsFreeValue(ctx, global);
     free(argv);
     return ValueConverter.toDartJSValue(ctx, retVal, false);
   }
 
   @override
-  noSuchMethod(Invocation invocation) {
+  dynamic noSuchMethod(Invocation invocation) {
     if (invocation.memberName == #call) {
       final arguments = invocation.positionalArguments;
-      return callFunction(this.ctx, this.val, arguments);
+      return callFunction(ctx, val, arguments);
     } else {
       return super.noSuchMethod(invocation);
     }
   }
 
   JSValue apply(List<dynamic> params) {
-    return callFunction(this.ctx, this.val, params);
+    return callFunction(ctx, val, params);
   }
 
   static void clearCache([Pointer ctx]) {
     if (ctx != null) {
       var length = _jsFunctionCache[ctx]?.length;
       length ??= 0;
-      for (int i = 0; i < length; i++) {
+      for (var i = 0; i < length; i++) {
         Quickjs.jsFreeValue(ctx, _jsFunctionCache[ctx][i]);
       }
       _jsFunctionCache[ctx]?.clear();
@@ -117,9 +118,9 @@ class JSFunction extends JSObject {
 
 class ValueConverter {
   static dynamic toDartValue(JSValue jsval) {
-    Pointer ctx = jsval.ctx;
-    Pointer val = jsval.val;
-    int tag = Quickjs.jsValueGetTag(val);
+    var ctx = jsval.ctx;
+    var val = jsval.val;
+    var tag = Quickjs.jsValueGetTag(val);
     dynamic retValue;
     if (tag == JSTag.INT) {
       retValue = Quickjs.jsToInt64(ctx, val);
@@ -146,9 +147,9 @@ class ValueConverter {
           return res;
         });
       } else if (Quickjs.jsIsArray(ctx, val) != 0) {
-        int length = Quickjs.jsToInt32(ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8("length")));
-        List<dynamic> list = List(length);
-        for (int i = 0; i < length; i++) {
+        var length = Quickjs.jsToInt32(ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8('length')));
+        var list = List<dynamic>(length);
+        for (var i = 0; i < length; i++) {
           JSValue jval = toDartJSValue(ctx, Quickjs.jsGetPropertyUint32(ctx, val, i), false);
           list[i] = toDartValue(jval);
           if (list[i] is! HostFunction) {
@@ -157,12 +158,12 @@ class ValueConverter {
         }
         return list;
       } else {
-        Map map = Map();
-        Pointer<Pointer> ptab = allocate<Pointer>();
-        Pointer<Uint32> plen = allocate<Uint32>();
+        var map = {};
+        var ptab = allocate<Pointer<Pointer>>();
+        var plen = allocate<Uint32>();
         if (Quickjs.jsGetOwnPropertyNames(ctx, ptab, plen, val, -1) == 0) {
-          int length = plen.value;
-          for (int i = 0; i < length; i++) {
+          var length = plen.value;
+          for (var i = 0; i < length; i++) {
             var jsAtom = Quickjs.jsPropertyEnumGetAtom(ptab.value, i);
             var jsAtomValue = Quickjs.jsAtomToValue(ctx, jsAtom);
             var jsProp = Quickjs.jsGetProperty(ctx, val, jsAtom);
@@ -208,7 +209,7 @@ class ValueConverter {
       });
     } else if (val is List) {
       jsVal = Quickjs.jsNewArray(ctx);
-      for (int i = 0; i < val.length; i++) {
+      for (var i = 0; i < val.length; i++) {
         Quickjs.jsDefinePropertyValueUint32(ctx, jsVal, i, toQuickJSValue(ctx, val[i]), JSProp.C_W_E);
       }
     } else if (val is Function) {
@@ -236,8 +237,8 @@ class ValueConverter {
   static Exception toDartException(Pointer ctx, Pointer exception) {
     var err = Utf8.fromUtf8(Quickjs.jsToCString(ctx, exception));
     if (Quickjs.jsValueGetTag(exception) == JSTag.OBJECT) {
-      Pointer stack =
-          Quickjs.jsGetPropertyStr(ctx, exception, Utf8.toUtf8("stack"));
+      var stack =
+          Quickjs.jsGetPropertyStr(ctx, exception, Utf8.toUtf8('stack'));
       if (Quickjs.jsToBool(ctx, stack) != 0) {
         err += '\n' + Utf8.fromUtf8(Quickjs.jsToCString(ctx, stack));
       }
@@ -248,23 +249,24 @@ class ValueConverter {
 }
 
 class HostFunction {
-  Function _onCall;
+  final Function _onCall;
   int _argNum;
   int get length => _argNum;
 
   HostFunction(this._onCall) {
-    String runtimeTypeStr = _onCall.runtimeType.toString();
+    var runtimeTypeStr = _onCall.runtimeType.toString();
     if (runtimeTypeStr.indexOf('(') == runtimeTypeStr.indexOf(')') - 1) {
       _argNum = 0;
     } else {
-      String argsStr = runtimeTypeStr.splitMapJoin((new RegExp(r',')),
+      var argsStr = runtimeTypeStr.splitMapJoin((RegExp(r',')),
       onMatch:    (m) => '${m.group(0)}',
       onNonMatch: (n) => '');
       _argNum = argsStr.length + 1;
     }
   }
 
-  noSuchMethod(Invocation invocation) {
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
     if (invocation.memberName == #call) {
       final arguments = invocation.positionalArguments;
       return _onCall(arguments);
@@ -279,7 +281,7 @@ class HostFunction {
 }
 
 class HostFunctionProxy {
-  static Map<Pointer, List<dynamic>> _hostFunctionCache = Map();
+  static final Map<Pointer, List<dynamic>> _hostFunctionCache = {};
   static bool initialized = false;
   int _callbackId;
   int get id => _callbackId;
@@ -290,23 +292,23 @@ class HostFunctionProxy {
       Quickjs.registerGlobalDartCallback(functionCallbackPointer);
       initialized = true;
     }
-    List funcList = _hostFunctionCache[ctx] ?? List<dynamic>();
+    var funcList = _hostFunctionCache[ctx] ?? <dynamic>[];
     funcList.add(HostFunction(func));
     _callbackId = funcList.length - 1;
     _hostFunctionCache[ctx] = funcList;
   }
 
   static Pointer functionCallback(Pointer ctx, Pointer thisVal, int argc, Pointer argv, int callbackId) {
-    Pointer jsVal = Quickjs.jsUndefined();
+    var jsVal = Quickjs.jsUndefined();
     try {
-      List funcList = _hostFunctionCache[ctx];
+      var funcList = _hostFunctionCache[ctx];
       var _hostFunction = funcList[callbackId];
       int _requestArgc = _hostFunction.length;
       if (_hostFunction != null) {
-        List params = [];
-        for (int i = 0; i < _requestArgc; i++) {
+        var params = [];
+        for (var i = 0; i < _requestArgc; i++) {
           if (i < argc) {
-            Pointer arg = Quickjs.getValueAtIndex(argv, i);
+            var arg = Quickjs.getValueAtIndex(argv, i);
             params.add(ValueConverter.toDartValueFromJs(ctx, arg));
           } else {
             params.add(null);

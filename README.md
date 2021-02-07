@@ -1,13 +1,15 @@
 # flutter_quickjs
 
-Flutter bindings with [dart:ffi](https://flutter.dev/docs/development/platform-integration/c-interop) for [QuickJS](https://bellard.org/quickjs/):A small Javascript engine supports ES2020.
+Flutter bindings with [dart:ffi](https://flutter.dev/docs/development/platform-integration/c-interop) for [QuickJS](https://bellard.org/quickjs/) : A small Javascript engine supports **ES2020**.
 
-Supports iOS, Android.
+This is a plugin help execute javascript on flutter app, which is convenient to use with simple apis, and it supports **iOS, Android** now.
 
 ## Install
-To use this plugin, add `flutter_quickjs` as a [dependency in your pubspec.yaml file](https://flutter.dev/platform-plugins/).
+To use this plugin, add `flutter_quickjs` as a [dependency in your pubspec.yaml file](https://pub.dev/packages/flutter_quickjs/install).
 
 ## Usage
+
+### Basic Example
 ``` dart
 import 'package:flutter/material.dart';
 import 'package:flutter_quickjs/flutter_quickjs.dart';
@@ -26,18 +28,47 @@ void main() {
 }
 
 runJs() {
-  var qjs = new FlutterQuickjs();
-  var res;
-  try {
-    res = qjs.eval('Math.PI');
-  } catch (e) {
-    res = e.message;
-  }
+  var qjs = FlutterQuickjs();
+  var res = qjs.eval('Math.PI');
   qjs.close();
   return res.toString();
 }
 ```
-More usages see [example](./example/lib/main.dart)
+### Global Object
+```dart
+qjs.eval('var a = 666;');
+print(qjs.global()['a']);
+// 666
+```
+### Set Value
+```dart
+qjs.setValue('globalThis.console.log', (msg) {
+  print(msg);
+});
+qjs.eval('console.log("hello world!")');
+// hello world!
+```
+
+### JS Function Call
+```dart
+var func = qjs.eval('function func(a, b){return [a, b, a + b];}func');
+print(func(2,3));
+// [2, 3, 5]
+```
+For more usages please see [example](./example/lib/main.dart)
+
+## Datatype Mapping
+| dart                         | js         |
+| ---------------------------- | ---------- |
+| null                         | Undefined / Null  |
+| Bool                         | Boolean    |
+| Int                          | Number     |
+| Double                       | Number     |
+| String                       | String     |
+| List                         | Array      |
+| Map                          | Object     |
+| Function                     | Function   |
+| Exception                    | Error      |
 
 ## Todo
 - bytecode support

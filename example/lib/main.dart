@@ -71,6 +71,8 @@ class _MyAppState extends State<MyApp> {
     print(ret('a', 1, 'b', 1));
     var retRet = ret('b', 3);
     print(retRet);
+    qjs.eval('function func1(a, b){return [a, b, a + b];}');
+    print(qjs.global()['func1'](2,3));
     // array
     print('=== array test ===');
     ret = qjs.eval("var arr = [1, 'a', 5, {c: 'd'}];arr");
@@ -100,12 +102,16 @@ class _MyAppState extends State<MyApp> {
     print(qjs.eval('console.log("logs from js", 3);'));
     var consolelog = qjs.eval('console.log');
     print(consolelog('call console.log from dart', 2));
+    qjs.setValue("globalThis.getRuntimeInfo", () {
+      return "another function from dart";
+    });
     qjs.setValue("globalThis.globalArray", ['aa', 33, (msg){ print(msg); }]);
     var global = qjs.global();
     print(global);
     print(global['func'](123, 32));
     global['console']['log']('call console.log from dart', 3);
     global['globalArray'][2]('test func in array');
+    print(global['getRuntimeInfo']());
 
     qjs.close();
   }
