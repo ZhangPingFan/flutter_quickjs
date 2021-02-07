@@ -329,37 +329,4 @@ extern "C"
     JSValue cfunc = JS_NewCFunctionData(ctx, dart_callback, 0, 0, 1, func_data);
     return new JSValue(cfunc);
   }
-  
-  DART_EXPORT int32_t evalScript(char *str)
-  {
-      JSRuntime *rt;
-      JSContext *ctx;
-      JSValue ret_val;
-      int ret;
-      
-      rt = JS_NewRuntime();
-      if (rt == NULL) {
-          return -1;
-      }        
-      ctx = JS_NewContext(rt);
-      if (ctx == NULL) {
-          JS_FreeRuntime(rt);
-          return -1;
-      }
-      
-      if (!str)
-          return -1;
-      ret_val = JS_Eval(ctx, str, strlen(str), "<evalScript>", JS_EVAL_TYPE_GLOBAL);
-      // JS_FreeCString(ctx, str);
-      int64_t tmpint64;
-      int rrr = JS_ToInt64(ctx, &tmpint64, ret_val);
-      JS_FreeValue(ctx, ret_val);
-      JS_FreeContext(ctx);
-      JS_FreeRuntime(rt);
-      return tmpint64;
-  }
-
-  DART_EXPORT int32_t native_add(int32_t x, int32_t y) {
-      return x + y;
-  }
 }

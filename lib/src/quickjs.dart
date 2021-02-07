@@ -134,18 +134,4 @@ class Quickjs {
   static final Pointer Function(Pointer, int) createFunctionFromDart = ffiqjsLib
     .lookup<NativeFunction<Pointer Function(Pointer, Int32)>>("createFunctionFromDart")
     .asFunction();
-
-  static int nativeAdd(int a, int b) {
-    int Function(int x, int y) _nativeAdd = ffiqjsLib
-    .lookup<NativeFunction<Int32 Function(Int32, Int32)>>("native_add")
-    .asFunction();
-    return _nativeAdd(a, b);
-  }
-
-  static int evalScript(Pointer<Utf8> script) {
-    int Function(Pointer<Utf8> script) _evalScript = ffiqjsLib
-    .lookup<NativeFunction<Int32 Function(Pointer<Utf8> script)>>("evalScript")
-    .asFunction();
-    return _evalScript(script);
-  }
 }

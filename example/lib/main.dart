@@ -41,7 +41,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> testFlutterQuickjs() async {
     if (!mounted) return;
 
-    var qjs = new FlutterQuickjs();
+    var qjs = FlutterQuickjs();
     var ret;
     // number
     print('=== number test ===');

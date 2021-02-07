@@ -67,7 +67,7 @@ class JSFunction extends JSObject {
 
   JSFunction(Pointer ctx, Pointer val, [bool dup = true]) : super(ctx, val, dup) {
     // keep all references to function alive util runtime closed
-    List jfuncList = _jsFunctionCache[ctx] ?? List<Pointer>();
+    List<Pointer> jfuncList = _jsFunctionCache[ctx] ?? List<Pointer>();
     jfuncList.add(val);
     _jsFunctionCache[ctx] = jfuncList;
   }

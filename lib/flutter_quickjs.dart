@@ -1,9 +1,5 @@
-
-import 'dart:async';
-import 'package:flutter/services.dart';
-
-import 'ffi/quickjs.dart';
-import 'ffi/jsvalue.dart';
+import 'src/quickjs.dart';
+import 'src/jsvalue.dart';
 
 class FlutterQuickjs {
   Pointer _rt;
@@ -71,21 +67,5 @@ class FlutterQuickjs {
     Quickjs.jsFreeValue(_ctx, _global);
     Quickjs.jsFreeContext(_ctx);
     Quickjs.jsFreeRuntime(_rt);
-  }
-
-  static const MethodChannel _channel =
-      const MethodChannel('flutter_quickjs');
-
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
-  }
-
-  static int nativeAdd(int x, int y) {
-    return Quickjs.nativeAdd(x, y);
-  }
-  
-  static int evalScript(Pointer<Utf8> script) {
-    return Quickjs.evalScript(script);
   }
 }
