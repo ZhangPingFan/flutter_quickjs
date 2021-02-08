@@ -47,9 +47,11 @@ class JSObject extends JSValue {
 
   JSValue getProperty(dynamic propName) {
     if (propName is int) {
-      return ValueConverter.toDartJSValue(ctx, Quickjs.jsGetPropertyUint32(ctx, val, propName), false);
+      return ValueConverter.toDartJSValue(
+          ctx, Quickjs.jsGetPropertyUint32(ctx, val, propName), false);
     } else if (propName is String) {
-      return ValueConverter.toDartJSValue(ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8(propName)), false);
+      return ValueConverter.toDartJSValue(ctx,
+          Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8(propName)), false);
     } else {
       print('getProperty with propName:$propName failed!');
       return null;
@@ -59,14 +61,15 @@ class JSObject extends JSValue {
 
 class JSArray extends JSObject {
   JSArray(Pointer ctx, Pointer val, [bool dup = true]) : super(ctx, val, dup);
-  int get length => Quickjs.jsToInt64(ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8('length')));
-
+  int get length => Quickjs.jsToInt64(
+      ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8('length')));
 }
 
 class JSFunction extends JSObject {
   static final Map<Pointer, List<Pointer>> _jsFunctionCache = {};
 
-  JSFunction(Pointer ctx, Pointer val, [bool dup = true]) : super(ctx, val, dup) {
+  JSFunction(Pointer ctx, Pointer val, [bool dup = true])
+      : super(ctx, val, dup) {
     // keep all references to function alive util runtime closed
     var jfuncList = _jsFunctionCache[ctx] ?? <Pointer>[];
     jfuncList.add(val);
@@ -80,7 +83,8 @@ class JSFunction extends JSObject {
       count: argc > 0 ? sizeOfJSValue * argc : 1,
     );
     for (var i = 0; i < argc; i++) {
-      Quickjs.setValueAtIndex(argv, i, ValueConverter.toQuickJSValue(ctx, arguments[i]));
+      Quickjs.setValueAtIndex(
+          argv, i, ValueConverter.toQuickJSValue(ctx, arguments[i]));
     }
     var global = Quickjs.jsGetGlobalObject(ctx);
     var retVal = Quickjs.jsCall(ctx, jsfunc, global, argc, argv);
@@ -147,11 +151,13 @@ class ValueConverter {
           return res;
         });
       } else if (Quickjs.jsIsArray(ctx, val) != 0) {
-        var length = Quickjs.jsToInt32(ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8('length')));
-        var list = List<dynamic>(length);
+        var length = Quickjs.jsToInt32(
+            ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8('length')));
+        var list = [];
         for (var i = 0; i < length; i++) {
-          JSValue jval = toDartJSValue(ctx, Quickjs.jsGetPropertyUint32(ctx, val, i), false);
-          list[i] = toDartValue(jval);
+          JSValue jval = toDartJSValue(
+              ctx, Quickjs.jsGetPropertyUint32(ctx, val, i), false);
+          list.add(toDartValue(jval));
           if (list[i] is! HostFunction) {
             jval.release();
           }
@@ -205,12 +211,14 @@ class ValueConverter {
     } else if (val is Map) {
       jsVal = Quickjs.jsNewObject(ctx);
       val.forEach((key, value) {
-        Quickjs.jsSetPropertyStr(ctx, jsVal, Utf8.toUtf8(key), toQuickJSValue(ctx, value));
+        Quickjs.jsSetPropertyStr(
+            ctx, jsVal, Utf8.toUtf8(key), toQuickJSValue(ctx, value));
       });
     } else if (val is List) {
       jsVal = Quickjs.jsNewArray(ctx);
       for (var i = 0; i < val.length; i++) {
-        Quickjs.jsDefinePropertyValueUint32(ctx, jsVal, i, toQuickJSValue(ctx, val[i]), JSProp.C_W_E);
+        Quickjs.jsDefinePropertyValueUint32(
+            ctx, jsVal, i, toQuickJSValue(ctx, val[i]), JSProp.C_W_E);
       }
     } else if (val is Function) {
       var hostFuncProxy = HostFunctionProxy(ctx, val);
@@ -259,8 +267,7 @@ class HostFunction {
       _argNum = 0;
     } else {
       var argsStr = runtimeTypeStr.splitMapJoin((RegExp(r',')),
-      onMatch:    (m) => '${m.group(0)}',
-      onNonMatch: (n) => '');
+          onMatch: (m) => '${m.group(0)}', onNonMatch: (n) => '');
       _argNum = argsStr.length + 1;
     }
   }
@@ -288,7 +295,9 @@ class HostFunctionProxy {
 
   HostFunctionProxy(Pointer ctx, Function func) {
     if (!initialized) {
-      final functionCallbackPointer = Pointer.fromFunction<Pointer Function(Pointer, Pointer, Int32, Pointer, Int32)>(functionCallback);
+      final functionCallbackPointer = Pointer.fromFunction<
+          Pointer Function(
+              Pointer, Pointer, Int32, Pointer, Int32)>(functionCallback);
       Quickjs.registerGlobalDartCallback(functionCallbackPointer);
       initialized = true;
     }
@@ -298,7 +307,8 @@ class HostFunctionProxy {
     _hostFunctionCache[ctx] = funcList;
   }
 
-  static Pointer functionCallback(Pointer ctx, Pointer thisVal, int argc, Pointer argv, int callbackId) {
+  static Pointer functionCallback(
+      Pointer ctx, Pointer thisVal, int argc, Pointer argv, int callbackId) {
     var jsVal = Quickjs.jsUndefined();
     try {
       var funcList = _hostFunctionCache[ctx];
@@ -317,7 +327,9 @@ class HostFunctionProxy {
         var ret = _hostFunction.apply(params);
         jsVal = ValueConverter.toQuickJSValue(ctx, ret);
       }
-    } catch(e) {print(e);}
+    } catch (e) {
+      print(e);
+    }
     return jsVal;
   }
 

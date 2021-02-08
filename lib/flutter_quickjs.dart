@@ -25,19 +25,21 @@ class FlutterQuickjs {
     key = key.replaceAll(RegExp(r'->'), '.');
     var lastIdx = key.lastIndexOf('.');
     var parentStr = key.substring(0, lastIdx).replaceAll(RegExp(r'\.'), '?.');
-    var propStr = key.substring(lastIdx+1);
+    var propStr = key.substring(lastIdx + 1);
     if (eval(parentStr, sourceStr, true) == null) {
       List varlist = parentStr.split('?.');
       var pStr = '';
       for (var i = 0; i < varlist.length; i++) {
         pStr += (i == 0 ? '' : '.') + varlist[i];
         var pStrUtf8 = Utf8.toUtf8('$pStr = $pStr || {};');
-        var ret = Quickjs.jsEval(_ctx, pStrUtf8, Utf8.strlen(pStrUtf8), source, 0 << 0);
+        var ret = Quickjs.jsEval(
+            _ctx, pStrUtf8, Utf8.strlen(pStrUtf8), source, 0 << 0);
         Quickjs.jsFreeValue(_ctx, ret);
       }
     }
     var parentUtf8 = Utf8.toUtf8(parentStr);
-    var parentPtr = Quickjs.jsEval(_ctx, parentUtf8, Utf8.strlen(parentUtf8), source, 0 << 0);
+    var parentPtr = Quickjs.jsEval(
+        _ctx, parentUtf8, Utf8.strlen(parentUtf8), source, 0 << 0);
     var valuePtr = ValueConverter.toQuickJSValue(_ctx, value);
     Quickjs.jsSetPropertyStr(_ctx, parentPtr, Utf8.toUtf8(propStr), valuePtr);
     Quickjs.jsFreeValue(_ctx, parentPtr);

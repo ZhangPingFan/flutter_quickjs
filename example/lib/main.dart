@@ -14,7 +14,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   TextEditingController _controller = TextEditingController(
-      text: 'const jsonData={ \n "0":0,\n "1":1,\n "2":2,\n "length":3 }\n\nconst func = (a, b) => {\n   let arr=Array.from(jsonData) \n   return Math.max(30, a + b * 3 * arr[2]);\n}\n\nfunc(...[2,5])');
+      text:
+          'const jsonData={ \n "0":0,\n "1":1,\n "2":2,\n "length":3 }\n\nconst func = (a, b) => {\n   let arr=Array.from(jsonData) \n   return Math.max(30, a + b * 3 * arr[2]);\n}\n\nfunc(...[2,5])');
   String result = '';
 
   @override
@@ -72,7 +73,7 @@ class _MyAppState extends State<MyApp> {
     var retRet = ret('b', 3);
     print(retRet);
     qjs.eval('function func1(a, b){return [a, b, a + b];}');
-    print(qjs.global()['func1'](2,3));
+    print(qjs.global()['func1'](2, 3));
     // array
     print('=== array test ===');
     ret = qjs.eval("var arr = [1, 'a', 5, {c: 'd'}];arr");
@@ -105,7 +106,13 @@ class _MyAppState extends State<MyApp> {
     qjs.setValue("globalThis.getRuntimeInfo", () {
       return "another function from dart";
     });
-    qjs.setValue("globalThis.globalArray", ['aa', 33, (msg){ print(msg); }]);
+    qjs.setValue("globalThis.globalArray", [
+      'aa',
+      33,
+      (msg) {
+        print(msg);
+      }
+    ]);
     var global = qjs.global();
     print(global);
     print(global['func'](123, 32));
@@ -126,18 +133,18 @@ class _MyAppState extends State<MyApp> {
         body: Container(
             padding: EdgeInsets.all(8.0),
             child: Column(
-            children: <Widget>[
-              TextField(
-                autofocus: true,
-                maxLines: 15,
-                controller: _controller,
-                decoration: InputDecoration(
-                    hintText: "write your js"),
-              ),
-              SizedBox(height: 25),
-              Text(result, textAlign: TextAlign.left, style: TextStyle(fontSize: 20))
-            ],
-        )),
+              children: <Widget>[
+                TextField(
+                  autofocus: true,
+                  maxLines: 15,
+                  controller: _controller,
+                  decoration: InputDecoration(hintText: "write your js"),
+                ),
+                SizedBox(height: 25),
+                Text(result,
+                    textAlign: TextAlign.left, style: TextStyle(fontSize: 20))
+              ],
+            )),
         floatingActionButton: FloatingActionButton(
           onPressed: runJs,
           tooltip: 'Run',
