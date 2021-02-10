@@ -175,8 +175,9 @@ class Quickjs {
       .lookup<NativeFunction<Pointer Function(Pointer, Int32)>>(
           'createFunctionFromDart')
       .asFunction();
-  static final void Function(Pointer, Pointer<Utf8>) registerEvalToGlobal = ffiqjsLib
-      .lookup<NativeFunction<Void Function(Pointer, Pointer<Utf8>)>>(
-          'registerEvalToGlobal')
-      .asFunction();
+  static final void Function(Pointer, Pointer<Utf8>) registerEvalToGlobal =
+      ffiqjsLib
+          .lookup<NativeFunction<Void Function(Pointer, Pointer<Utf8>)>>(
+              'registerEvalToGlobal')
+          .asFunction();
 }

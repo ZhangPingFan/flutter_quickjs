@@ -14,7 +14,7 @@ class FlutterQuickjs {
   }
 
   /// Return the global object.
-  /// 
+  ///
   /// Call it everytime before use to ensure the global object is up to date.
   dynamic global() {
     return ValueConverter.toDartValueFromJs(_ctx, _global);

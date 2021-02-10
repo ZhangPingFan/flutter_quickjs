@@ -128,7 +128,8 @@ class _MyAppState extends State<MyApp> {
     // registerEvalToGlobal
     qjs.registerEvalToGlobal('compileAndRunBundle');
     try {
-      qjs.eval('compileAndRunBundle(`throw new Error("jserror");`, "test.js");');
+      qjs.eval(
+          'compileAndRunBundle(`throw new Error("jserror");`, "test.js");');
     } catch (e) {
       print(e.message);
     }

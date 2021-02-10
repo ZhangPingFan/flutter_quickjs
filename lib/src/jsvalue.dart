@@ -199,7 +199,8 @@ class ValueConverter {
     return retValue;
   }
 
-  static dynamic toDartValueFromJs(Pointer ctx, Pointer val, {Map<int, dynamic> cache}) {
+  static dynamic toDartValueFromJs(Pointer ctx, Pointer val,
+      {Map<int, dynamic> cache}) {
     return toDartValue(toDartJSValue(ctx, val, false), cache: cache);
   }
 
