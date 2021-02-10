@@ -49,6 +49,9 @@ class Quickjs {
   static final int Function(Pointer) jsValueGetTag = ffiqjsLib
       .lookup<NativeFunction<Int32 Function(Pointer)>>('jsValueGetTag')
       .asFunction();
+  static final Pointer Function(Pointer) jsValueGetPtr = ffiqjsLib
+      .lookup<NativeFunction<Pointer Function(Pointer)>>('jsValueGetPtr')
+      .asFunction();
   static final int Function(Pointer) jsIsObject = ffiqjsLib
       .lookup<NativeFunction<Int32 Function(Pointer)>>('jsIsObject')
       .asFunction();
@@ -171,5 +174,9 @@ class Quickjs {
   static final Pointer Function(Pointer, int) createFunctionFromDart = ffiqjsLib
       .lookup<NativeFunction<Pointer Function(Pointer, Int32)>>(
           'createFunctionFromDart')
+      .asFunction();
+  static final void Function(Pointer, Pointer<Utf8>) registerEvalToGlobal = ffiqjsLib
+      .lookup<NativeFunction<Void Function(Pointer, Pointer<Utf8>)>>(
+          'registerEvalToGlobal')
       .asFunction();
 }

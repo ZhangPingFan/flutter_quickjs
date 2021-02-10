@@ -14,6 +14,8 @@ class FlutterQuickjs {
   }
 
   /// Return the global object.
+  /// 
+  /// Call it everytime before use to ensure the global object is up to date.
   dynamic global() {
     return ValueConverter.toDartValueFromJs(_ctx, _global);
   }
@@ -59,6 +61,16 @@ class FlutterQuickjs {
       throw result;
     }
     return result;
+  }
+
+  /// Register eval() into global object by a new name.
+  void registerEvalToGlobal(String funcName) {
+    if (funcName != null && funcName.isNotEmpty) {
+      var funcUtf8 = Utf8.toUtf8(funcName);
+      Quickjs.registerEvalToGlobal(_ctx, funcUtf8);
+    } else {
+      print('registerEvalToGlobal fail because funcName is null!');
+    }
   }
 
   /// Release the JsRuntime.

@@ -304,7 +304,7 @@ extern "C"
 
   JSValue dart_callback(JSContext *ctx, JSValueConst this_val, int32_t argc, JSValueConst *argv, int magic, JSValue *func_data)
   {
-    if (global_dart_callback_sync == nullptr)
+    if (global_dart_callback_sync == NULL)
     {
         printf("global_dart_callback_sync is null!");
         return JS_UNDEFINED;
@@ -328,5 +328,25 @@ extern "C"
     func_data[0] = JS_NewInt32(ctx, callbackId);
     JSValue cfunc = JS_NewCFunctionData(ctx, dart_callback, 0, 0, 1, func_data);
     return new JSValue(cfunc);
+  }
+
+  JSValue eval_script(JSContext *ctx, JSValueConst this_val, int32_t argc, JSValueConst *argv)
+  {
+    const char *script = JS_ToCString(ctx, argv[0]);
+    const char *bundleUrl = JS_ToCString(ctx, argv[1]);
+    JSValue jval = JS_Eval(ctx, script, strlen(script), bundleUrl, 0);
+    JS_FreeCString(ctx, script);
+    JS_FreeCString(ctx, bundleUrl);
+    return jval;
+  }
+
+  DART_EXPORT void registerEvalToGlobal(JSContext *ctx, const char *func_name)
+  {
+    JSValue globalObject = JS_GetGlobalObject(ctx);
+    if (JS_IsUndefined(JS_GetPropertyStr(ctx, globalObject, func_name))) {
+      JSValue eval_script_func = JS_NewCFunction(ctx, eval_script, func_name, 2);
+      JS_SetPropertyStr(ctx, globalObject, func_name, eval_script_func);
+    }
+    JS_FreeValue(ctx, globalObject);
   }
 }

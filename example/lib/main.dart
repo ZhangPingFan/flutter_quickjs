@@ -104,7 +104,7 @@ class _MyAppState extends State<MyApp> {
     var consolelog = qjs.eval('console.log');
     print(consolelog('call console.log from dart', 2));
     qjs.setValue("globalThis.getRuntimeInfo", () {
-      return "another function from dart";
+      return "another function getRuntimeInfo from dart";
     });
     qjs.setValue("globalThis.globalArray", [
       'aa',
@@ -119,6 +119,19 @@ class _MyAppState extends State<MyApp> {
     global['console']['log']('call console.log from dart', 3);
     global['globalArray'][2]('test func in array');
     print(global['getRuntimeInfo']());
+    qjs.setValue("globalThis.func", () {
+      return "func has been overrided";
+    });
+    global = qjs.global();
+    print(global['func']());
+
+    // registerEvalToGlobal
+    qjs.registerEvalToGlobal('compileAndRunBundle');
+    try {
+      qjs.eval('compileAndRunBundle(`throw new Error("jserror");`, "test.js");');
+    } catch (e) {
+      print(e.message);
+    }
 
     qjs.close();
   }
