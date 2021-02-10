@@ -121,7 +121,7 @@ class JSFunction extends JSObject {
 }
 
 class ValueConverter {
-  static dynamic toDartValue(JSValue jsval) {
+  static dynamic toDartValue(JSValue jsval, {Map<int, dynamic> cache}) {
     var ctx = jsval.ctx;
     var val = jsval.val;
     var tag = Quickjs.jsValueGetTag(val);
@@ -140,6 +140,11 @@ class ValueConverter {
     } else if (tag == JSTag.STRING) {
       retValue = Utf8.fromUtf8(Quickjs.jsToCString(ctx, val));
     } else if (tag == JSTag.OBJECT) {
+      cache ??= {};
+      var valptr = Quickjs.jsValueGetPtr(val).address;
+      if (cache.containsKey(valptr)) {
+        return cache[valptr];
+      }
       if (Quickjs.jsIsFunction(ctx, val) != 0) {
         retValue = HostFunction((arguments) {
           var resJval = (jsval as JSFunction).apply(arguments);
@@ -154,27 +159,29 @@ class ValueConverter {
         var length = Quickjs.jsToInt32(
             ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8('length')));
         var list = [];
+        cache[valptr] = list;
         for (var i = 0; i < length; i++) {
           JSValue jval = toDartJSValue(
               ctx, Quickjs.jsGetPropertyUint32(ctx, val, i), false);
-          list.add(toDartValue(jval));
+          list.add(toDartValue(jval, cache: cache));
           if (list[i] is! HostFunction) {
             jval.release();
           }
         }
         return list;
       } else {
-        var map = {};
+        var map = <String, dynamic>{};
         var ptab = allocate<Pointer<Pointer>>();
         var plen = allocate<Uint32>();
+        cache[valptr] = map;
         if (Quickjs.jsGetOwnPropertyNames(ctx, ptab, plen, val, -1) == 0) {
           var length = plen.value;
           for (var i = 0; i < length; i++) {
             var jsAtom = Quickjs.jsPropertyEnumGetAtom(ptab.value, i);
             var jsAtomValue = Quickjs.jsAtomToValue(ctx, jsAtom);
             var jsProp = Quickjs.jsGetProperty(ctx, val, jsAtom);
-            map[toDartValueFromJs(ctx, jsAtomValue)] =
-                toDartValueFromJs(ctx, jsProp);
+            map[toDartValueFromJs(ctx, jsAtomValue, cache: cache)] =
+                toDartValueFromJs(ctx, jsProp, cache: cache);
             Quickjs.jsFreeValue(ctx, jsAtomValue);
             if (Quickjs.jsIsFunction(ctx, jsProp) == 0) {
               Quickjs.jsFreeValue(ctx, jsProp);
@@ -192,8 +199,8 @@ class ValueConverter {
     return retValue;
   }
 
-  static dynamic toDartValueFromJs(Pointer ctx, Pointer val) {
-    return toDartValue(toDartJSValue(ctx, val, false));
+  static dynamic toDartValueFromJs(Pointer ctx, Pointer val, {Map<int, dynamic> cache}) {
+    return toDartValue(toDartJSValue(ctx, val, false), cache: cache);
   }
 
   static Pointer toQuickJSValue(Pointer ctx, dynamic val) {
