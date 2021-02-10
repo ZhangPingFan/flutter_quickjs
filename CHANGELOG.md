@@ -10,3 +10,8 @@
 ## 1.0.2
 
 * Code format.
+
+## 1.0.3
+
+* Add registerEvalToGlobal
+* Fix circular reference issue in object conversion
