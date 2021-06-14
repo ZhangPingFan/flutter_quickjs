@@ -1,17 +1,17 @@
 name: flutter_quickjs
-description: Flutter bindings with dart:ffi for QuickJS,a small Javascript engine supports ES2020.
-version: 1.0.3
+description: Flutter bindings with dart:ffi for QuickJS, a small js engine supports ES2020.
+version: 1.1.0
 homepage: https://github.com/ZhangPingFan/flutter_quickjs
 repository: https://github.com/ZhangPingFan/flutter_quickjs
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
-  flutter: ">=1.20.0"
+  flutter: ">=2.2.2"
 
 dependencies:
   flutter:
     sdk: flutter
-  ffi: ^0.1.3
+  ffi: ^1.1.2
 
 dev_dependencies:
   flutter_test:

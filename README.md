@@ -7,6 +7,8 @@ This is a plugin help execute javascript on flutter app, which is convenient to 
 ## Install
 To use this plugin, add `flutter_quickjs` as a [dependency in your pubspec.yaml file](https://pub.dev/packages/flutter_quickjs/install).
 
+CocoaPods: >= 1.10.0
+
 ## Usage
 
 ### Basic Example

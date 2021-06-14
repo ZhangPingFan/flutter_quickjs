@@ -26,7 +26,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   runJs() {
-    var qjs = new FlutterQuickjs();
+    var qjs = FlutterQuickjs();
     var res;
     try {
       res = qjs.eval(_controller.text);
@@ -45,18 +45,18 @@ class _MyAppState extends State<MyApp> {
     var qjs = FlutterQuickjs();
     var ret;
     // number
-    print('=== number test ===');
+    print('=== number ===');
     print(qjs.eval('3 * 21'));
     print(qjs.eval('Math.PI'));
     // boolean
-    print('=== boolean test ===');
+    print('=== boolean ===');
     print(qjs.eval('1 == 1'));
     print(qjs.eval('1 == 2'));
     // string
-    print('=== string test ===');
+    print('=== string ===');
     print(qjs.eval('"hello"'));
     // object
-    print('=== object test ===');
+    print('=== object ===');
     ret = qjs.eval("var obj = {a: 1, b: 'c', 'd': { e : { f : 222} }};obj");
     print(ret);
     print(ret['d']['e']['f']);
@@ -64,7 +64,7 @@ class _MyAppState extends State<MyApp> {
     print(qjs.eval("globalThis.obj.b"));
     print(qjs.eval("globalThis?.notfound?.haha"));
     // function
-    print('=== function test ===');
+    print('=== function ===');
     ret = qjs.eval("function func(a, b){return a + b;}func");
     print(ret);
     var x = ret.call('a', 'b');
@@ -75,14 +75,14 @@ class _MyAppState extends State<MyApp> {
     qjs.eval('function func1(a, b){return [a, b, a + b];}');
     print(qjs.global()['func1'](2, 3));
     // array
-    print('=== array test ===');
+    print('=== array ===');
     ret = qjs.eval("var arr = [1, 'a', 5, {c: 'd'}];arr");
     print(ret);
     print(ret[2]);
     print(ret[0]);
     print(ret[3]['c']);
     // error
-    print('=== error test ===');
+    print('=== error ===');
     try {
       ret = qjs.eval("throw new Error('jserror');", "test.js");
     } catch (e) {
@@ -90,7 +90,7 @@ class _MyAppState extends State<MyApp> {
     }
 
     // setValue & dart function call
-    print('=== setValue test ===');
+    print('=== setValue ===');
     qjs.setValue("globalThis.testObj.a.b", {'abc': 1});
     print(qjs.eval("globalThis?.testObj?.a?.b"));
     qjs.setValue("globalThis.console.log", (msg1, msg2, msg3) {
@@ -133,6 +133,13 @@ class _MyAppState extends State<MyApp> {
     } catch (e) {
       print(e.message);
     }
+
+    // proxy
+    print('=== proxy ===');
+    qjs.eval("var proxy = new Proxy(obj, { get: function(obj, prop) { return 'getter';} , set: function(){console.log('setter')}});");
+    ret = qjs.eval("proxy.a");
+    print(ret);
+    qjs.eval("proxy.a = 2;");
 
     qjs.close();
   }

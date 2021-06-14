@@ -23,7 +23,7 @@ class FlutterQuickjs {
   /// Set value by the key.
   void setValue(String key, dynamic value) {
     var sourceStr = 'FlutterQuickjs.setValue';
-    var source = Utf8.toUtf8(sourceStr);
+    var source = sourceStr.toNativeUtf8();
     key = key.replaceAll(RegExp(r'->'), '.');
     var lastIdx = key.lastIndexOf('.');
     var parentStr = key.substring(0, lastIdx).replaceAll(RegExp(r'\.'), '?.');
@@ -33,25 +33,25 @@ class FlutterQuickjs {
       var pStr = '';
       for (var i = 0; i < varlist.length; i++) {
         pStr += (i == 0 ? '' : '.') + varlist[i];
-        var pStrUtf8 = Utf8.toUtf8('$pStr = $pStr || {};');
+        var pStrUtf8 = '$pStr = $pStr || {};'.toNativeUtf8();
         var ret = Quickjs.jsEval(
-            _ctx, pStrUtf8, Utf8.strlen(pStrUtf8), source, 0 << 0);
+            _ctx, pStrUtf8, pStrUtf8.length, source, 0 << 0);
         Quickjs.jsFreeValue(_ctx, ret);
       }
     }
-    var parentUtf8 = Utf8.toUtf8(parentStr);
+    var parentUtf8 = parentStr.toNativeUtf8();
     var parentPtr = Quickjs.jsEval(
-        _ctx, parentUtf8, Utf8.strlen(parentUtf8), source, 0 << 0);
+        _ctx, parentUtf8, parentUtf8.length, source, 0 << 0);
     var valuePtr = ValueConverter.toQuickJSValue(_ctx, value);
-    Quickjs.jsSetPropertyStr(_ctx, parentPtr, Utf8.toUtf8(propStr), valuePtr);
+    Quickjs.jsSetPropertyStr(_ctx, parentPtr, propStr.toNativeUtf8(), valuePtr);
     Quickjs.jsFreeValue(_ctx, parentPtr);
   }
 
   /// Evaluate the given JavaScript string and return the result.
   dynamic eval(String script, [String source, bool free = false]) {
-    var input = Utf8.toUtf8(script);
-    var filename = Utf8.toUtf8(source ?? '<anonymous>');
-    var inputLen = Utf8.strlen(input);
+    var input = script.toNativeUtf8();
+    var filename = (source ?? '<anonymous>').toNativeUtf8();
+    var inputLen = input.length;
     var ret = Quickjs.jsEval(_ctx, input, inputLen, filename, 0 << 0);
     var result = ValueConverter.toDartValueFromJs(_ctx, ret);
     if (result is! HostFunction) {
@@ -66,7 +66,7 @@ class FlutterQuickjs {
   /// Register eval() into global object by a new name.
   void registerEvalToGlobal(String funcName) {
     if (funcName != null && funcName.isNotEmpty) {
-      var funcUtf8 = Utf8.toUtf8(funcName);
+      var funcUtf8 = funcName.toNativeUtf8();
       Quickjs.registerEvalToGlobal(_ctx, funcUtf8);
     } else {
       print('registerEvalToGlobal fail because funcName is null!');

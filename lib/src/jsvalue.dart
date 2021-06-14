@@ -26,7 +26,7 @@ class JSValue {
   @override
   String toString() {
     if (Quickjs.jsValueGetTag(_val) < JSTag.INT) {
-      return Utf8.fromUtf8(Quickjs.jsToCString(_ctx, _val));
+      return Quickjs.jsToCString(_ctx, _val).toDartString();
     } else {
       _value ??= ValueConverter.toDartValue(this);
       return _value.toString();
@@ -51,7 +51,7 @@ class JSObject extends JSValue {
           ctx, Quickjs.jsGetPropertyUint32(ctx, val, propName), false);
     } else if (propName is String) {
       return ValueConverter.toDartJSValue(ctx,
-          Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8(propName)), false);
+          Quickjs.jsGetPropertyStr(ctx, val, propName.toNativeUtf8()), false);
     } else {
       print('getProperty with propName:$propName failed!');
       return null;
@@ -62,7 +62,7 @@ class JSObject extends JSValue {
 class JSArray extends JSObject {
   JSArray(Pointer ctx, Pointer val, [bool dup = true]) : super(ctx, val, dup);
   int get length => Quickjs.jsToInt64(
-      ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8('length')));
+      ctx, Quickjs.jsGetPropertyStr(ctx, val, 'length'.toNativeUtf8()));
 }
 
 class JSFunction extends JSObject {
@@ -79,8 +79,8 @@ class JSFunction extends JSObject {
   static JSValue callFunction(ctx, jsfunc, arguments) {
     int argc = arguments.length;
     var sizeOfJSValue = Quickjs.sizeOfJSValue();
-    var argv = allocate<Pointer<Pointer>>(
-      count: argc > 0 ? sizeOfJSValue * argc : 1,
+    var argv = calloc<Pointer<Pointer>>(
+      argc > 0 ? sizeOfJSValue * argc : 1,
     );
     for (var i = 0; i < argc; i++) {
       Quickjs.setValueAtIndex(
@@ -89,7 +89,7 @@ class JSFunction extends JSObject {
     var global = Quickjs.jsGetGlobalObject(ctx);
     var retVal = Quickjs.jsCall(ctx, jsfunc, global, argc, argv);
     Quickjs.jsFreeValue(ctx, global);
-    free(argv);
+    calloc.free(argv);
     return ValueConverter.toDartJSValue(ctx, retVal, false);
   }
 
@@ -138,7 +138,7 @@ class ValueConverter {
     } else if (tag == JSTag.FLOAT64) {
       retValue = Quickjs.jsToFloat64(ctx, val);
     } else if (tag == JSTag.STRING) {
-      retValue = Utf8.fromUtf8(Quickjs.jsToCString(ctx, val));
+      retValue = Quickjs.jsToCString(ctx, val).toDartString();
     } else if (tag == JSTag.OBJECT) {
       cache ??= {};
       var valptr = Quickjs.jsValueGetPtr(val).address;
@@ -157,7 +157,7 @@ class ValueConverter {
         });
       } else if (Quickjs.jsIsArray(ctx, val) != 0) {
         var length = Quickjs.jsToInt32(
-            ctx, Quickjs.jsGetPropertyStr(ctx, val, Utf8.toUtf8('length')));
+            ctx, Quickjs.jsGetPropertyStr(ctx, val, 'length'.toNativeUtf8()));
         var list = [];
         cache[valptr] = list;
         for (var i = 0; i < length; i++) {
@@ -171,8 +171,8 @@ class ValueConverter {
         return list;
       } else {
         var map = <String, dynamic>{};
-        var ptab = allocate<Pointer<Pointer>>();
-        var plen = allocate<Uint32>();
+        var ptab = calloc<Pointer<Pointer>>();
+        var plen = calloc<Uint32>();
         cache[valptr] = map;
         if (Quickjs.jsGetOwnPropertyNames(ctx, ptab, plen, val, -1) == 0) {
           var length = plen.value;
@@ -189,8 +189,8 @@ class ValueConverter {
             Quickjs.jsFreeAtom(ctx, jsAtom);
           }
         }
-        free(ptab);
-        free(plen);
+        calloc.free(ptab);
+        calloc.free(plen);
         return map;
       }
     } else {
@@ -215,12 +215,12 @@ class ValueConverter {
     } else if (val is double) {
       jsVal = Quickjs.jsNewFloat64(ctx, val);
     } else if (val is String) {
-      jsVal = Quickjs.jsNewString(ctx, Utf8.toUtf8(val));
+      jsVal = Quickjs.jsNewString(ctx, val.toNativeUtf8());
     } else if (val is Map) {
       jsVal = Quickjs.jsNewObject(ctx);
       val.forEach((key, value) {
         Quickjs.jsSetPropertyStr(
-            ctx, jsVal, Utf8.toUtf8(key), toQuickJSValue(ctx, value));
+            ctx, jsVal, key.toString().toNativeUtf8(), toQuickJSValue(ctx, value));
       });
     } else if (val is List) {
       jsVal = Quickjs.jsNewArray(ctx);
@@ -251,12 +251,12 @@ class ValueConverter {
   }
 
   static Exception toDartException(Pointer ctx, Pointer exception) {
-    var err = Utf8.fromUtf8(Quickjs.jsToCString(ctx, exception));
+    var err = Quickjs.jsToCString(ctx, exception).toDartString();
     if (Quickjs.jsValueGetTag(exception) == JSTag.OBJECT) {
       var stack =
-          Quickjs.jsGetPropertyStr(ctx, exception, Utf8.toUtf8('stack'));
+          Quickjs.jsGetPropertyStr(ctx, exception, 'stack'.toNativeUtf8());
       if (Quickjs.jsToBool(ctx, stack) != 0) {
-        err += '\n' + Utf8.fromUtf8(Quickjs.jsToCString(ctx, stack));
+        err += '\n' + Quickjs.jsToCString(ctx, stack).toDartString();
       }
       Quickjs.jsFreeValue(ctx, stack);
     }
