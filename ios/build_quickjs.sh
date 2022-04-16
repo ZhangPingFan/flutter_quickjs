@@ -59,7 +59,7 @@ then
 		then
 			MACOSX_SDK_DIR=`xcrun --show-sdk-path`
 			CONFIG_XCRUN_EXTRA_FLAG=""
-		    CONFIG_EXTRA_CFLAGS="-arch $ARCH --target=x86_64-apple-ios13-macabi -isysroot $MACOSX_SDK_DIR -isystem $MACOSX_SDK_DIR/System/iOSSupport/usr/include -iframework $MACOSX_SDK_DIR/System/iOSSupport/System/Library/Frameworks"
+		    CONFIG_EXTRA_CFLAGS="-arch $ARCH --target=x86_64-apple-ios-macabi -isysroot $MACOSX_SDK_DIR -isystem $MACOSX_SDK_DIR/System/iOSSupport/usr/include -iframework $MACOSX_SDK_DIR/System/iOSSupport/System/Library/Frameworks"
 		else
 			CONFIG_XCRUN_EXTRA_FLAG="-sdk iphoneos"
 			CONFIG_EXTRA_CFLAGS="-arch $ARCH -fembed-bitcode"

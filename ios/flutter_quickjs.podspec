@@ -20,6 +20,7 @@ A new flutter plugin project.
   s.prepare_command = 'sh build_quickjs.sh'
 
   # Flutter.framework does not contain a i386 slice.
+  # replace 'i386' with 'arm64' when running on iphone simulator (for mac with intel core)
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.vendored_frameworks = 'framework/QuickJS.xcframework'
   s.swift_version = '5.0'
